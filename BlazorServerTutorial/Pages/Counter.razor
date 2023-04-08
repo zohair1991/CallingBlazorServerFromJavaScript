@@ -1,0 +1,58 @@
+﻿@page "/counter"
+
+<PageTitle>Counter</PageTitle>
+
+<h1>Counter</h1>
+
+<p role="status">Current count: @currentCount</p>
+
+<button class="btn btn-primary" id="btnCallBlazor">Call Blazor Server Method from JavaScript.</button>
+
+@code {
+    private int currentCount = 0;
+
+    [Inject] private IJSRuntime? jsRunTime { get; set; }
+
+    private string Parameter1 { get; set; }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        Parameter1 = "Please subscribe to my channel :";
+    }
+
+    private void IncrementCount()
+    {
+        currentCount++;
+    }
+
+    [JSInvokable("BlazorServerMethod")]
+    public void BlazorServerMethod(string name)
+    {
+
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await jsRunTime!.InvokeVoidAsync("myJavaScriptFunction", DotNetObjectReference.Create(this), Parameter1,
+            nameof(BlazorServerMethod));
+        }
+    }
+}
+
+<script suppress-error="BL9992">
+
+    var _dotNetCoreInstance;
+    function myJavaScriptFunction(dotNetCoreInstance, Parameter) {
+        _dotNetCoreInstance = dotNetCoreInstance;
+        console.log(Parameter);
+    }
+
+    document.getElementById("btnCallBlazor").onclick = function () {
+        _dotNetCoreInstance.invokeMethodAsync("BlazorServerMethod", "Hi from Coding Chacha");
+    }
+
+
+</script>
